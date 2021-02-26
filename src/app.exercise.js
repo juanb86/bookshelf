@@ -11,12 +11,13 @@ import {useAsync} from 'utils/hooks'
 import * as colors from 'styles/colors'
 
 async function getUser() {
-  let promise
+  let user
   const token = await auth.getToken()
   if (token) {
-    const promise =  client('me', {token})
+    const data = await client('me', {token})
+    user = data.user
   }
-  return promise
+  return user
 }
 
 function App() {
@@ -33,9 +34,7 @@ function App() {
   } = useAsync()
 
   React.useEffect(() => {
-    const userReturned = run(getUser())
-    console.log('USER RETURNED')
-    console.log(userReturned)
+    run(getUser())
   }, [run])
 
   const login = form => run(auth.login(form))
@@ -45,7 +44,7 @@ function App() {
 
   if (isLoading || isIdle) return <FullPageSpinner />
 
-  if (isError)
+  if (isError) {
     return (
       <div
         css={{
@@ -61,6 +60,7 @@ function App() {
         <pre>{error.message}</pre>
       </div>
     )
+  }
 
   if (isSuccess)
     return user ? (

@@ -52,6 +52,7 @@ function useAsync(initialState) {
       safeSetState({status: 'pending'})
       return promise.then(
         data => {
+          console.log(data)
           setData(data)
           return data
         },

@@ -11,14 +11,12 @@ import {useAsync} from 'utils/hooks'
 import * as colors from 'styles/colors'
 
 async function getUser() {
-  let user = null
+  let promise
   const token = await auth.getToken()
   if (token) {
-    client('me', {token}).then(data => {
-      user = data.user
-    })
+    const promise =  client('me', {token})
   }
-  return user
+  return promise
 }
 
 function App() {
@@ -35,13 +33,15 @@ function App() {
   } = useAsync()
 
   React.useEffect(() => {
-    run(getUser().then(u => setUser({u})))
-  }, [run, setUser])
+    const userReturned = run(getUser())
+    console.log('USER RETURNED')
+    console.log(userReturned)
+  }, [run])
 
-  const login = form => run(auth.login(form).then(u => setUser(u)))
-  const register = form => run(auth.register(form).then(u => setUser(u)))
+  const login = form => run(auth.login(form))
+  const register = form => run(auth.register(form))
 
-  const logout = form => run(auth.logout(form).then(u => setUser(null)))
+  const logout = form => run(auth.logout(form))
 
   if (isLoading || isIdle) return <FullPageSpinner />
 

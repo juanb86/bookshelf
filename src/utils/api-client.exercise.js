@@ -14,7 +14,6 @@ function client(
     ...customConfig,
   }
 
-  console.log(config)
 
   return window.fetch(`${apiURL}/${endpoint}`, config).then(async response => {
     const data = await response.json()

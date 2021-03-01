@@ -15,9 +15,19 @@ function BookRow({user, book}) {
   // 🐨 call useQuery here to get the list item
   // queryKey should be 'list-items'
   // queryFn should be a call to the list-items endpoint
+  const {data: listItems, error, isLoading, isError, isSuccess} = useQuery({
+    queryKey: 'list-items',
+    queryFn: (key, {query}) =>
+      client(`list-items`, {
+        token: user.token,
+      }).then(data => {
+        console.log(data)
+        data.listItems
+      }),
+  })
 
   // 🐨 assign listItem to the list item that has the same bookId as the book.id
-  const listItem = null
+  const listItem = listItems.filter(i=>i.bookId === book.id)
 
   const id = `book-row-book-${book.id}`
 

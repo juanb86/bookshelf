@@ -30,21 +30,37 @@ const loadingBook = {
 function BookScreen({user}) {
   const {bookId} = useParams()
   // 💣 remove the useAsync call here
-  const {data, run} = useAsync()
+  // const {data, run} = useAsync()
 
   // 🐨 call useQuery here
   // queryKey should be ['book', {bookId}]
   // queryFn should be what's currently passed in the run function below
+  const {data, error, isLoading, isError, isSuccess} = useQuery({
+    queryKey: ['book', {bookId}],
+    queryFn: (key, {bookId}) =>
+      client(`books/${bookId}`, {token: user.token}).then(data => data.books),
+  })
 
   // 💣 remove the useEffect here (react-query will handle that now)
-  React.useEffect(() => {
-    run(client(`books/${bookId}`, {token: user.token}))
-  }, [run, bookId, user.token])
+  // React.useEffect(() => {
+  //   run(client(`books/${bookId}`, {token: user.token}))
+  // }, [run, bookId, user.token])
 
   // 🐨 call useQuery to get the list item from the list-items endpoint
   // queryKey should be 'list-items'
   // queryFn should call the 'list-items' endpoint with the user's token
-  const listItem = null
+  const {data: listItems} = useQuery({
+    queryKey: 'list-items',
+    queryFn: (key, {query}) =>
+      client(`list-items`, {
+        token: user.token,
+      }).then(data => {
+        console.log(data)
+        data.listItems
+      }),
+  })
+
+  const listItem = listItems.filter(i => i.bookId === data.id)
   // 🦉 NOTE: the backend doesn't support getting a single list-item by it's ID
   // and instead expects us to cache all the list items and look them up in our
   // cache. This works out because we're using react-query for caching!
@@ -133,14 +149,19 @@ function ListItemTimeframe({listItem}) {
 
 function NotesTextarea({listItem, user}) {
   // 🐨 call useMutation here
+  const [mutate] = useMutation(({id, notes}) =>
+    client(`list-items/:${id}`, {
+      token: user.token,
+      method: 'PUT',
+      data: notes,
+    }),
+  )
   // the mutate function should call the list-items/:listItemId endpoint with a PUT
   //   and the updates as data. The mutate function will be called with the updates
   //   you can pass as data.
   // 💰 if you want to get the list-items cache updated after this query finishes
   // the use the `onSettled` config option to queryCache.invalidateQueries('list-items')
-  // 💣 DELETE THIS ESLINT IGNORE!! Don't ignore the exhaustive deps rule please
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const mutate = () => {}
+  // const mutate = () => {}
   const debouncedMutate = React.useMemo(() => debounceFn(mutate, {wait: 300}), [
     mutate,
   ])

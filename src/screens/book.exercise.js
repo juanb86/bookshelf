@@ -7,8 +7,7 @@ import {FaRegCalendarAlt} from 'react-icons/fa'
 import Tooltip from '@reach/tooltip'
 import {useParams} from 'react-router-dom'
 // 🐨 you'll need these:
-// import {useQuery, useMutation, queryCache} from 'react-query'
-import {useAsync} from 'utils/hooks'
+import {useQuery, useMutation, queryCache} from 'react-query'
 import {client} from 'utils/api-client'
 import {formatDate} from 'utils/misc'
 import * as mq from 'styles/media-queries'
@@ -35,7 +34,7 @@ function BookScreen({user}) {
   // 🐨 call useQuery here
   // queryKey should be ['book', {bookId}]
   // queryFn should be what's currently passed in the run function below
-  const {data, error, isLoading, isError, isSuccess} = useQuery({
+  const {data} = useQuery({
     queryKey: ['book', {bookId}],
     queryFn: (key, {bookId}) =>
       client(`books/${bookId}`, {token: user.token}).then(data => data.books),
@@ -56,7 +55,7 @@ function BookScreen({user}) {
         token: user.token,
       }).then(data => {
         console.log(data)
-        data.listItems
+        return data.listItems
       }),
   })
 
@@ -149,12 +148,16 @@ function ListItemTimeframe({listItem}) {
 
 function NotesTextarea({listItem, user}) {
   // 🐨 call useMutation here
-  const [mutate] = useMutation(({id, notes}) =>
-    client(`list-items/:${id}`, {
-      token: user.token,
-      method: 'PUT',
-      data: notes,
-    }),
+  const [mutate] = useMutation(
+    ({id, notes}) =>
+      client(`list-items/:${id}`, {
+        token: user.token,
+        method: 'PUT',
+        data: notes,
+      }),
+    {
+      onSettled: queryCache.invalidateQueries('list-items'),
+    },
   )
   // the mutate function should call the list-items/:listItemId endpoint with a PUT
   //   and the updates as data. The mutate function will be called with the updates

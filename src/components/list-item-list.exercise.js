@@ -19,13 +19,16 @@ function ListItemList({
   // queryKey should be 'list-items'
   // queryFn should call the 'list-items' endpoint
 
-   const {data} = useQuery({
+   const {data: listItems} = useQuery({
      queryKey: 'list-items',
-     queryFn: () => client('list-items').then(data => data.tweet),
+     queryFn: key =>
+       client(`list-items`, {
+         token: user.token,
+       }).then(data => data.listItems),
    })
 
   // 🐨 assign this to the list items you get back from react-query
-  const listItems = data
+  // const listItems = data
 
   const filteredListItems = listItems?.filter(filterListItems)
 

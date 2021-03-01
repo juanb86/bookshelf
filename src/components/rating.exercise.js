@@ -39,7 +39,7 @@ function Rating({listItem, user}) {
   //   you can pass as data.
   // 💰 if you want to get the list-items cache updated after this query finishes
   // the use the `onSettled` config option to queryCache.invalidateQueries('list-items')
-  const update = () => {}
+  // const update = () => {}
 
   React.useEffect(() => {
     function handleKeyDown(event) {

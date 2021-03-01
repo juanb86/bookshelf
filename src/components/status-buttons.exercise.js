@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa'
 import Tooltip from '@reach/tooltip'
 // 🐨 you'll need useQuery, useMutation, and queryCache from 'react-query'
-import {useQuery,useMutation,queryCache} from 'react-query'
+import {useQuery, useMutation, queryCache} from 'react-query'
 // 🐨 you'll also need client from 'utils/api-client'
 import {client} from 'utils/api-client'
 import {useAsync} from 'utils/hooks'
@@ -53,14 +53,17 @@ function StatusButtons({user, book}) {
   // 🐨 call useQuery here to get the listItem (if it exists)
   // queryKey should be 'list-items'
   // queryFn should call the list-items endpoint
-  const {data} = useQuery({
+  const {data: listItems} = useQuery({
     queryKey: 'list-items',
-    queryFn: () => client('list-items').then(data => data.tweet),
+    queryFn: key =>
+      client(`list-items`, {
+        token: user.token,
+      }).then(data => data.listItems),
   })
 
   // 🐨 search through the listItems you got from react-query and find the
   // one with the right bookId.
-  const listItem = data.filter(i=>i.id===book.id)
+  const listItem = listItems.filter(i => i.bookId === book.id)
 
   // 💰 for all the mutations below, if you want to get the list-items cache
   // updated after this query finishes the use the `onSettled` config option
@@ -84,21 +87,29 @@ function StatusButtons({user, book}) {
 
   // 🐨 call useMutation here and assign the mutate function to "remove"
   // the mutate function should call the list-items/:listItemId endpoint with a DELETE
-  const remove = useMutation(({id}) =>
-    client(`list-items/:${id}`, {
-      token: user.token,
-      method: 'DELETE',
-    }),
+  const remove = useMutation(
+    ({id}) =>
+      client(`list-items/:${id}`, {
+        token: user.token,
+        method: 'DELETE',
+      }),
+    {
+      onSettled: queryCache.invalidateQueries('list-items'),
+    },
   )
 
   // 🐨 call useMutation here and assign the mutate function to "create"
   // the mutate function should call the list-items endpoint with a POST
   // and the bookId the listItem is being created for.
-  const create = useMutation(({id,listItem}) =>
-    client(`list-items`, {
-      token: user.token,
-      data: listItem
-    }),
+  const create = useMutation(
+    ({id, listItem}) =>
+      client(`list-items`, {
+        token: user.token,
+        data: listItem,
+      }),
+    {
+      onSettled: queryCache.invalidateQueries('list-items'),
+    },
   )
 
   return (

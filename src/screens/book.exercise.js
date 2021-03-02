@@ -36,8 +36,7 @@ function BookScreen({user}) {
   // queryFn should be what's currently passed in the run function below
   const {data} = useQuery({
     queryKey: ['book', {bookId}],
-    queryFn: (key, {bookId}) =>
-      client(`books/${bookId}`, {token: user.token}).then(data => data.books),
+    queryFn: () => client(`books/${bookId}`, {token: user.token}),
   })
 
   // 💣 remove the useEffect here (react-query will handle that now)
@@ -50,16 +49,13 @@ function BookScreen({user}) {
   // queryFn should call the 'list-items' endpoint with the user's token
   const {data: listItems} = useQuery({
     queryKey: 'list-items',
-    queryFn: (key, {query}) =>
+    queryFn: () =>
       client(`list-items`, {
         token: user.token,
-      }).then(data => {
-        console.log(data)
-        return data.listItems
-      }),
+      }).then(data => data.listItems),
   })
 
-  const listItem = listItems.filter(i => i.bookId === data.id)
+  const listItem = listItems ? listItems.find(i => i.bookId === bookId) : null
   // 🦉 NOTE: the backend doesn't support getting a single list-item by it's ID
   // and instead expects us to cache all the list items and look them up in our
   // cache. This works out because we're using react-query for caching!
@@ -149,15 +145,13 @@ function ListItemTimeframe({listItem}) {
 function NotesTextarea({listItem, user}) {
   // 🐨 call useMutation here
   const [mutate] = useMutation(
-    ({id, notes}) =>
-      client(`list-items/:${id}`, {
+    updates =>
+      client(`list-items/${updates.id}`, {
         token: user.token,
         method: 'PUT',
-        data: notes,
+        data: updates,
       }),
-    {
-      onSettled: queryCache.invalidateQueries('list-items'),
-    },
+    {onSettled: () => queryCache.invalidateQueries('list-items')},
   )
   // the mutate function should call the list-items/:listItemId endpoint with a PUT
   //   and the updates as data. The mutate function will be called with the updates

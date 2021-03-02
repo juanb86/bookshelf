@@ -23,16 +23,15 @@ const visuallyHiddenCSS = {
 function Rating({listItem, user}) {
   const [isTabbing, setIsTabbing] = React.useState(false)
   // 🐨 call useMutation here and call the function "update"
-  const update = useMutation(
-    ({id, updates}) =>
-      client(`list-items/:${id}`, {
+  const [update] = useMutation(
+    updates => {
+      client(`list-items/${updates.id}`, {
         token: user.token,
         method: 'PUT',
         data: updates,
-      }),
-    {
-      onSettled: queryCache.invalidateQueries('list-items'),
+      })
     },
+    {onSettled: () => queryCache.invalidateQueries('list-items')},
   )
   // the mutate function should call the list-items/:listItemId endpoint with a PUT
   //   and the updates as data. The mutate function will be called with the updates

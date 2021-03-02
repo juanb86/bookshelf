@@ -21,7 +21,7 @@ function ListItemList({
 
    const {data: listItems} = useQuery({
      queryKey: 'list-items',
-     queryFn: key =>
+     queryFn: () =>
        client(`list-items`, {
          token: user.token,
        }).then(data => data.listItems),

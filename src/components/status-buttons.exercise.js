@@ -55,7 +55,7 @@ function StatusButtons({user, book}) {
   // queryFn should call the list-items endpoint
   const {data: listItems} = useQuery({
     queryKey: 'list-items',
-    queryFn: key =>
+    queryFn: () =>
       client(`list-items`, {
         token: user.token,
       }).then(data => data.listItems),
@@ -63,9 +63,10 @@ function StatusButtons({user, book}) {
 
   // 🐨 search through the listItems you got from react-query and find the
   // one with the right bookId.
-  const listItem = listItems
-    ? listItems.filter(i => i.bookId === book.id)
-    : null
+  // const listItem =
+  //   listItems ? listItems.filter(i => i.bookId === book.id)  : null
+
+  const listItem = listItems ? listItems.find(i => i.bookId === book.id) : null
 
   // 💰 for all the mutations below, if you want to get the list-items cache
   // updated after this query finishes the use the `onSettled` config option
@@ -76,44 +77,37 @@ function StatusButtons({user, book}) {
   //   and the updates as data. The mutate function will be called with the updates
   //   you can pass as data.
   const [update] = useMutation(
-    ({id, updates}) =>{
-      console.log(id)
-      console.log(updates)
-      client(`list-items/:${id}`, {
+    updates => {
+      client(`list-items/${updates.id}`, {
         token: user.token,
         method: 'PUT',
         data: updates,
-      })},
-    // {
-    //   onSettled: queryCache.invalidateQueries('list-items'),
-    // },
+      })
+    },
+    {onSettled: () => queryCache.invalidateQueries('list-items')},
   )
 
   // 🐨 call useMutation here and assign the mutate function to "remove"
   // the mutate function should call the list-items/:listItemId endpoint with a DELETE
   const [remove] = useMutation(
     ({id}) =>
-      client(`list-items/:${id}`, {
+      client(`list-items/${id}`, {
         token: user.token,
         method: 'DELETE',
       }),
-    // {
-    //   onSettled: queryCache.invalidateQueries('list-items'),
-    // },
+    {onSettled: () => queryCache.invalidateQueries('list-items')},
   )
 
   // 🐨 call useMutation here and assign the mutate function to "create"
   // the mutate function should call the list-items endpoint with a POST
   // and the bookId the listItem is being created for.
   const [create] = useMutation(
-    () =>
+    ({bookId}) =>
       client(`list-items`, {
         token: user.token,
-        data: listItem,
+        data: {bookId},
       }),
-    // {
-    //   onSettled: queryCache.invalidateQueries('list-items'),
-    // },
+    {onSettled: () => queryCache.invalidateQueries('list-items')},
   )
 
   return (
@@ -146,7 +140,7 @@ function StatusButtons({user, book}) {
           label="Remove from list"
           highlight={colors.danger}
           // 🐨 add an onClick here that calls remove
-          onClick={() => remove()}
+          onClick={() => remove({id: listItem.id})}
           icon={<FaMinusCircle />}
         />
       ) : (
@@ -154,7 +148,7 @@ function StatusButtons({user, book}) {
           label="Add to list"
           highlight={colors.indigo}
           // 🐨 add an onClick here that calls create
-          onClick={() => create()}
+          onClick={() => create({bookId: book.id})}
           icon={<FaPlusCircle />}
         />
       )}

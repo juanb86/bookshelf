@@ -36,7 +36,7 @@ function DiscoverBooksScreen({user}) {
   // const {data, error, run, isLoading, isError, isSuccess} = useAsync()
    const {data, error, isLoading, isError, isSuccess} = useQuery({
      queryKey: ['bookSearch', {query}],
-     queryFn: (key, {query}) =>
+     queryFn: () =>
        client(`books?query=${encodeURIComponent(query)}`, {
          token: user.token,
        }).then(data => data.books),

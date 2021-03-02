@@ -63,7 +63,9 @@ function StatusButtons({user, book}) {
 
   // 🐨 search through the listItems you got from react-query and find the
   // one with the right bookId.
-  const listItem = listItems.filter(i => i.bookId === book.id)
+  const listItem = listItems
+    ? listItems.filter(i => i.bookId === book.id)
+    : null
 
   // 💰 for all the mutations below, if you want to get the list-items cache
   // updated after this query finishes the use the `onSettled` config option
@@ -73,43 +75,45 @@ function StatusButtons({user, book}) {
   // the mutate function should call the list-items/:listItemId endpoint with a PUT
   //   and the updates as data. The mutate function will be called with the updates
   //   you can pass as data.
-  const update = useMutation(
-    ({id, updates}) =>
+  const [update] = useMutation(
+    ({id, updates}) =>{
+      console.log(id)
+      console.log(updates)
       client(`list-items/:${id}`, {
         token: user.token,
         method: 'PUT',
         data: updates,
-      }),
-    {
-      onSettled: queryCache.invalidateQueries('list-items'),
-    },
+      })},
+    // {
+    //   onSettled: queryCache.invalidateQueries('list-items'),
+    // },
   )
 
   // 🐨 call useMutation here and assign the mutate function to "remove"
   // the mutate function should call the list-items/:listItemId endpoint with a DELETE
-  const remove = useMutation(
+  const [remove] = useMutation(
     ({id}) =>
       client(`list-items/:${id}`, {
         token: user.token,
         method: 'DELETE',
       }),
-    {
-      onSettled: queryCache.invalidateQueries('list-items'),
-    },
+    // {
+    //   onSettled: queryCache.invalidateQueries('list-items'),
+    // },
   )
 
   // 🐨 call useMutation here and assign the mutate function to "create"
   // the mutate function should call the list-items endpoint with a POST
   // and the bookId the listItem is being created for.
-  const create = useMutation(
-    ({id, listItem}) =>
+  const [create] = useMutation(
+    () =>
       client(`list-items`, {
         token: user.token,
         data: listItem,
       }),
-    {
-      onSettled: queryCache.invalidateQueries('list-items'),
-    },
+    // {
+    //   onSettled: queryCache.invalidateQueries('list-items'),
+    // },
   )
 
   return (
@@ -120,7 +124,7 @@ function StatusButtons({user, book}) {
             label="Unmark as read"
             highlight={colors.yellow}
             // 🐨 add an onClick here that calls update with the data we want to update
-            onClick={update({id: listItem.id, finishDate: null})}
+            onClick={() => update({id: listItem.id, finishDate: null})}
             // 💰 to mark a list item as unread, set the finishDate to null
             // {id: listItem.id, finishDate: null}
             icon={<FaBook />}
@@ -130,7 +134,7 @@ function StatusButtons({user, book}) {
             label="Mark as read"
             highlight={colors.green}
             // 🐨 add an onClick here that calls update with the data we want to update
-            onClick={update({id: listItem.id, finishDate: Date.now()})}
+            onClick={() => update({id: listItem.id, finishDate: Date.now()})}
             // 💰 to mark a list item as read, set the finishDate
             // {id: listItem.id, finishDate: Date.now()}
             icon={<FaCheckCircle />}
@@ -142,7 +146,7 @@ function StatusButtons({user, book}) {
           label="Remove from list"
           highlight={colors.danger}
           // 🐨 add an onClick here that calls remove
-          onClick={remove()}
+          onClick={() => remove()}
           icon={<FaMinusCircle />}
         />
       ) : (
@@ -150,7 +154,7 @@ function StatusButtons({user, book}) {
           label="Add to list"
           highlight={colors.indigo}
           // 🐨 add an onClick here that calls create
-          onClick={create()}
+          onClick={() => create()}
           icon={<FaPlusCircle />}
         />
       )}

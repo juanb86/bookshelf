@@ -26,7 +26,9 @@ function BookRow({user, book}) {
   })
 
   // 🐨 assign listItem to the list item that has the same bookId as the book.id
-  const listItem = listItems.filter(i=>i.bookId === book.id)
+  const listItem = listItems
+    ? listItems.filter(i => i.bookId === book.id)
+    : null
 
   const id = `book-row-book-${book.id}`
 

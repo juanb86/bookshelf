@@ -22,7 +22,7 @@ function useListItem(token, bookId) {
 }
 
 function useUpdateListItem(token) {
-  const [update] = useMutation(
+  return useMutation(
     updates => {
       client(`list-items/${updates.id}`, {
         token: token,
@@ -32,11 +32,10 @@ function useUpdateListItem(token) {
     },
     {onSettled: () => queryCache.invalidateQueries('list-items')},
   )
-  return {update}
 }
 
 function useRemoveListItem(token) {
-  const [remove] = useMutation(
+  return useMutation(
     ({id}) =>
       client(`list-items/${id}`, {
         token: token,
@@ -44,11 +43,10 @@ function useRemoveListItem(token) {
       }),
     {onSettled: () => queryCache.invalidateQueries('list-items')},
   )
-  return {remove}
 }
 
 function useCreateListItem(token) {
-  const [create] = useMutation(
+  return useMutation(
     ({bookId}) =>
       client(`list-items`, {
         token: token,
@@ -56,7 +54,6 @@ function useCreateListItem(token) {
       }),
     {onSettled: () => queryCache.invalidateQueries('list-items')},
   )
-  return {create}
 }
 
 export {

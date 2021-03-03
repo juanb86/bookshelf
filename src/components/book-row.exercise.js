@@ -11,7 +11,7 @@ import {Rating} from './rating'
 function BookRow({user, book}) {
   const {title, author, coverImageUrl} = book
 
-  const {listItem} = useListItem(user.token)
+  const listItem = useListItem(user.token,book.id)
 
   const id = `book-row-book-${book.id}`
 

@@ -28,11 +28,11 @@ function useBookSearch(token, query) {
 }
 
 function useBook(token, bookId) {
-  const state = useQuery({
+  const {data} = useQuery({
     queryKey: ['book', {bookId}],
-    queryFn: () => client(`books/${bookId}`, {token: token}),
+    queryFn: () => client(`books/${bookId}`, {token}).then(data => data.book),
   })
-  return {...state, book: state.data?.book ?? loadingBook}
+  return data ?? loadingBook
 }
 
 export {useBook, useBookSearch}

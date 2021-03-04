@@ -121,7 +121,6 @@ const errorMessageVariants = {
 }
 
 function ErrorMessage({error, variant = 'stacked', ...props}) {
-  console.log('ERROR')
   return (
     <div
       role="alert"

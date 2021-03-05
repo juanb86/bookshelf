@@ -1,11 +1,7 @@
-// 🐨 we're going to use React hooks in here now so we'll need React
 import * as React from 'react'
 import {useQuery, queryCache} from 'react-query'
-import {useAuth, useClient} from 'context/auth-context'
-import {client} from './api-client'
+import {useClient} from 'context/auth-context'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
-
-const authenticatedClient = useClient()
 
 const loadingBook = {
   title: 'Loading...',
@@ -21,7 +17,7 @@ const loadingBooks = Array.from({length: 10}, (v, index) => ({
   ...loadingBook,
 }))
 
-const getBookSearchConfig = query => ({
+const getBookSearchConfig = (query, authenticatedClient) => ({
   queryKey: ['bookSearch', {query}],
   queryFn: () =>
     authenticatedClient(`books?query=${encodeURIComponent(query)}`).then(
@@ -37,11 +33,13 @@ const getBookSearchConfig = query => ({
 })
 
 function useBookSearch(query) {
-  const result = useQuery(getBookSearchConfig(query))
+  const authenticatedClient = useClient()
+  const result = useQuery(getBookSearchConfig(query, authenticatedClient))
   return {...result, books: result.data ?? loadingBooks}
 }
 
 function useBook(bookId) {
+  const authenticatedClient = useClient()
   const {data} = useQuery({
     queryKey: ['book', {bookId}],
     queryFn: () =>
@@ -51,10 +49,16 @@ function useBook(bookId) {
 }
 
 function useRefetchBookSearchQuery() {
-  return React.useCallback(async function refetchBookSearchQuery() {
-    queryCache.removeQueries('bookSearch')
-    await queryCache.prefetchQuery(getBookSearchConfig(''))
-  }, [])
+  const authenticatedClient = useClient()
+  return React.useCallback(
+    async function refetchBookSearchQuery() {
+      queryCache.removeQueries('bookSearch')
+      await queryCache.prefetchQuery(
+        getBookSearchConfig('', authenticatedClient),
+      )
+    },
+    [authenticatedClient],
+  )
 }
 
 const bookQueryConfig = {

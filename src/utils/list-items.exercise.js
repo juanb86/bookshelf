@@ -26,7 +26,26 @@ const defaultMutationOptions = {
   onSettled: () => queryCache.invalidateQueries('list-items'),
 }
 
-function useUpdateListItem(token,options) {
+const optimisticUpdatesOptions = func => ({
+  onMutate: param => {
+    queryCache.cancelQueries('list-items')
+
+    const previousListItems = queryCache.getQueryData('list-items')
+
+    queryCache.setQueryData('list-items', listItems => func(listItems, param))
+
+    return () => queryCache.setQueryData('list-items', previousListItems)
+  },
+  onError: rollback => rollback(),
+})
+
+function optimisticUpdateFunction(listItems, param) {
+  return listItems.map(item =>
+    item.id === param.id ? {...item, ...param} : item,
+  )
+}
+
+function useUpdateListItem(token, options) {
   return useMutation(
     updates =>
       client(`list-items/${updates.id}`, {
@@ -34,8 +53,16 @@ function useUpdateListItem(token,options) {
         data: updates,
         token,
       }),
-    {...defaultMutationOptions,...options},
+    {
+      ...optimisticUpdatesOptions(optimisticUpdateFunction),
+      ...defaultMutationOptions,
+      ...options,
+    },
   )
+}
+
+function optimisticRemoveFunction(listItems, param) {
+  return listItems.filter(item => item.id !== param.id)
 }
 
 function useRemoveListItem(token, options) {
@@ -45,8 +72,16 @@ function useRemoveListItem(token, options) {
         method: 'DELETE',
         token: token,
       }),
-    {...defaultMutationOptions, ...options},
+    {
+      ...optimisticUpdatesOptions(optimisticRemoveFunction),
+      ...defaultMutationOptions,
+      ...options,
+    },
   )
+}
+
+function optimisticCreateFunction(listItems, param) {
+  return [...listItems, {bookId: param.bookId}]
 }
 
 function useCreateListItem(token, options) {
@@ -56,7 +91,11 @@ function useCreateListItem(token, options) {
         token: token,
         data: {bookId},
       }),
-    {...defaultMutationOptions, ...options},
+    {
+      ...optimisticUpdatesOptions(optimisticCreateFunction),
+      ...defaultMutationOptions,
+      ...options,
+    },
   )
 }
 

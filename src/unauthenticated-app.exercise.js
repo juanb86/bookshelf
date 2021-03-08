@@ -15,6 +15,7 @@ import {
   Dialog,
 } from './components/lib'
 // 🐨 import all the Modal compound components you created in ./components/modal
+import {Modal, ModalContents, ModalDismissButton, ModalOpenButton} from 'components/modal'
 import {Logo} from './components/logo'
 import {useAuth} from './context/auth-context'
 import {useAsync} from './utils/hooks'
@@ -130,7 +131,7 @@ function UnauthenticatedApp() {
              it did when you started, but the extra credits will help clean
              things up a bit.
         */}
-        <LoginFormModal
+        {/* <LoginFormModal
           onSubmit={login}
           modalTitleText="Login"
           modalLabelText="Login form"
@@ -143,7 +144,19 @@ function UnauthenticatedApp() {
           modalLabelText="Registration form"
           submitButton={<Button variant="secondary">Register</Button>}
           openButton={<Button variant="secondary">Register</Button>}
-        />
+        /> */}
+        <Modal>
+          <ModalOpenButton>
+            <Button variant="secondary">Register</Button>
+          </ModalOpenButton>
+          <ModalContents aria-label="Modal label (for screen readers)">
+            <ModalDismissButton>
+              <button>Close Modal</button>
+            </ModalDismissButton>
+            <h3>Modal title</h3>
+            <div>Some great contents of the modal</div>
+          </ModalContents>
+        </Modal>
       </div>
     </div>
   )

@@ -1,5 +1,9 @@
+/** @jsx jsx */
+import {jsx} from '@emotion/core'
+
 import * as React from 'react'
-import {Dialog} from './lib'
+import VisuallyHidden from '@reach/visually-hidden'
+import {Dialog, CircleButton} from './lib'
 
 const ModalContext = React.createContext()
 
@@ -25,29 +29,54 @@ function useModal() {
 
 function ModalDismissButton({children}) {
   const {setIsOpen} = useModal()
-  const onClick = () => callAll(onClick, () => setIsOpen(false))
 
   if (children.length > 1) {
     throw new Error('ModalDismissButton accepts only one child (button)')
   }
-  return React.cloneElement(children, {onClick})
+  return React.cloneElement(children, {
+    onClick: callAll(children.props.onClick, () => setIsOpen(false)),
+  })
 }
 
 function ModalOpenButton({children}) {
   const {setIsOpen} = useModal()
-  const onClick = () => callAll(onClick, () => setIsOpen(true))
 
   if (children.length > 1) {
     throw new Error('ModalOpenButton accepts only one child (button)')
   }
-  return React.cloneElement(children, {onClick: ()=> console.log(children)})
+  return React.cloneElement(children, {
+    onClick: callAll(children.props.onClick, () => setIsOpen(true)),
+  })
 }
 
-function ModalContents(props) {
+function ModalContentsBase(props) {
   const {isOpen, setIsOpen} = useModal()
   const onDismiss = () => setIsOpen(false)
 
   return <Dialog isOpen={isOpen} onDismiss={onDismiss} {...props} />
 }
 
-export {Modal, ModalContents, ModalDismissButton, ModalOpenButton}
+function ModalContents({children, title, ...props}) {
+  return (
+    <ModalContentsBase {...props}>
+      <div css={{display: 'flex', justifyContent: 'flex-end'}}>
+        <ModalDismissButton>
+          <CircleButton>
+            <VisuallyHidden>Close</VisuallyHidden>
+            <span aria-hidden>×</span>
+          </CircleButton>
+        </ModalDismissButton>
+      </div>
+      <h3 css={{textAlign: 'center', fontSize: '2em'}}>{title}</h3>
+      {children}
+    </ModalContentsBase>
+  )
+}
+
+export {
+  Modal,
+  ModalContentsBase,
+  ModalContents,
+  ModalDismissButton,
+  ModalOpenButton,
+}
